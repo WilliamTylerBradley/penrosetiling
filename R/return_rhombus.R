@@ -1,3 +1,29 @@
+#' Get a starting rhombus
+#'
+#' This function returns a data set of two observations. Each observation is a
+#' triangle for one half of a rhombus. The location, direction, and shape of the
+#' rhombus is determined through the parameters.
+#'
+#' The starting point of rhombus is given by the \code{point_x} and
+#' \code{point_y} parameters. This will appear in the data set as
+#' \code{point1_x} and \code{point1_y}. The \code{rotation} in degrees will turn
+#' the rhombus around this point while \code{side_length} will change the size.
+#' Finally, \code{shape} will provide either a thick or thin rhombus. A "t" for
+#' the shape parameter will yield a thin rhombus. Anything else will provide a
+#' thick one, but traditionally a "T" is used.
+#'
+#' @param point_x Starting x position for first point
+#' @param point_y Starting y position for first point
+#' @param rotation Rotation about the starting position in degrees
+#' @param side_length Length of one outside edge
+#' @param shape Ether "t" for thin rhombus or "T" for thick rhombus
+#'
+#' @return Data set of triangles that join to create a rhombus
+#' @export
+#'
+#' @examples
+#' return_rhombus(0, 0, 0, 10, "T")
+#' return_rhombus(1, 1, 90, .5, "t")
 return_rhombus <- function(point_x, point_y, rotation, side_length, shape) {
   if(shape == 't') {
 
