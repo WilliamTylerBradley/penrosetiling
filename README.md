@@ -17,6 +17,6 @@ You can install penrosetiling from [GitHub](https://github.com/WilliamTylerBradl
 install_github("WilliamTylerBradley/penrosetiling")
 ```
 
-## Vingnettes
+## Vignettes
 
 See the vignettes to get started, use `purrr` for repetition, and trouble-shooting.
