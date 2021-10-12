@@ -2,6 +2,7 @@
 
 export("%>%")
 export(clean)
+export(pivot_down)
 export(return_rhombus)
 export(return_starting_circle)
 export(subdivide)
