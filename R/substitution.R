@@ -20,7 +20,6 @@
 #'
 #' @examples
 #' return_rhombus(0, 0, -90 + 36, 1, "T") %>% substitution()
-#'
 #' @importFrom rlang .data
 substitution <- function(df) {
   df <- df %>%

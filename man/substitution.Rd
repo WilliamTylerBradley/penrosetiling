@@ -29,5 +29,4 @@ cause errors but almost always fixes more problems than it creates.
 }
 \examples{
 return_rhombus(0, 0, -90 + 36, 1, "T") \%>\% substitution()
-
 }
