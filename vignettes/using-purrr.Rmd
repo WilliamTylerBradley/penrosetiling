@@ -1,0 +1,279 @@
+---
+title: "Using Purrr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{using-purrr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Setup
+
+```{r setup, message = FALSE}
+library(penrosetiling)
+library(tidyverse)
+```
+
+## Basic Repetition
+
+You can subdivide the same data down by calling `substitution` multiple times.
+```{r repetition_1, fig.align = 'center', fig.height = 2, fig.width = 7}
+tiles <- return_rhombus(0, 0, -90 + 36, 100, 'T') %>%
+  substitution() %>%
+  substitution() %>%
+  substitution() %>%
+  substitution() %>%
+  substitution() %>%
+  pivot_down()
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = shape,
+                   group = triangle)) +
+  coord_equal()
+```
+</br>
+You can also use a loop.
+```{r repetition_2, fig.align = 'center', fig.height = 2, fig.width = 7}
+tiles <- return_rhombus(0, 0, -90 + 36, 100, 'T') 
+
+for(i in seq(1, 5)) {
+  tiles <- tiles %>% substitution()
+}
+  
+tiles <- tiles %>%
+  pivot_down()
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = shape,
+                   group = triangle)) +
+  coord_equal()
+```
+</br>
+Using `purrr::reduce` will wrap everything up nicely into a function call. You'll need to pass a function with two parameters for it to work. This makes it easy to adjust the number of substitutions.
+```{r repetition_3, fig.align = 'center', fig.height = 2, fig.width = 7}
+tiles <- return_rhombus(0, 0, -90 + 36, 100, 'T')
+
+tiles <- purrr::reduce(.x = rep(list(1), 5),
+                       .f = function(df, x) {substitution(df)},
+                       .init = tiles)
+
+tiles <- tiles %>%
+  pivot_down()
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = shape,
+                   group = triangle)) +
+  coord_equal()
+```
+
+## Advance Repetition
+
+This setup allows for passing a function that subdivides different sections of the data set. For example, the number of times a triangle is subdivided can be a function of the mean x position.
+
+```{r x_position, fig.align = 'center', fig.height = 2, fig.width = 7}
+tiles <- return_rhombus(0, 0, -90 + 36, 100, 'T') %>%
+  substitution() %>%
+  substitution() %>%
+  pivot_down() %>%
+  group_by(triangle) %>%
+  mutate(mean_x = mean(x))
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = mean_x,
+                   group = triangle)) +
+  coord_equal()
+```
+
+By creating a function that checks if the x position is past a cutoff, then passing the cutoffs as a list, `purrr:reduce` will loop through the cutoffs and apply the function appropriately. In this example, triangles with a mean x position past the cutoffs of 10, 20, ..., 80 will be subdivided.
+
+```{r x_cutoffs, fig.align = 'center', fig.height = 2, fig.width = 7}
+check_substitution <- function(df, x) {
+  df <- df %>%
+    rowwise() %>%
+    mutate(mean_x = c(point1_x + point2_x + point3_x) / 3) %>%
+    mutate(subdivide = if_else(mean_x > x, TRUE, FALSE))
+  
+  df_subdivide <- df %>%
+    filter(subdivide == TRUE) %>%
+    select(-subdivide) %>%
+    substitution()
+  
+  df <- df %>%
+    filter(subdivide == FALSE) %>%
+    select(-subdivide) %>%
+    bind_rows(df_subdivide) %>%
+    select(-c(triangle, rhombus)) %>% # reset triangle and rhombus
+    rowid_to_column("triangle") %>%
+    group_by(point1_x, point1_y, point3_x, point3_y) %>%
+    mutate(rhombus = cur_group_id()) %>%
+    ungroup()
+  
+  return(df)
+}
+
+tiles <- return_rhombus(0, 0, -90 + 36, 100, 'T')
+
+tiles <- purrr::reduce(.x = as.list(seq(10, 80, by = 10)),
+                .f = check_substitution,
+                .init = tiles)
+
+tiles <- tiles %>%
+  pivot_down()
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = shape,
+                   group = triangle)) +
+  coord_equal()
+```
+</br>
+In the next example, the cutoffs will be based on the distance to the center. This will also use the center of the rhombus instead of the triangle.
+```{r center_cutoffs, fig.align = 'center', fig.height = 2, fig.width = 7}
+tiles <- return_starting_circle(0, 0, 90, 5, 'T') %>%
+  substitution() %>%
+  pivot_down() %>%
+  select(-triangle) %>%
+  distinct() %>%
+  group_by(rhombus) %>%
+  mutate(center_x = mean(x), 
+         center_y = mean(y)) %>%
+  mutate(distance = round(sqrt(center_x^2 + center_y^2), 2))
+  
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = as.character(distance),
+                   group = rhombus)) +
+  coord_equal() +
+  scale_fill_discrete("Distance from center") +
+  theme(legend.position = "bottom")
+```
+</br>
+We'll use cutoffs of 3 and 5. This will subdivide the middle and outside once, then the outside another time. Now we just need to stick this in a function, subdivide the ones that pass, and join back to the triangles that didn't.
+```{r center_cutoffs_1, fig.align = 'center', fig.height = 2, fig.width = 7}
+check_substitution <- function(df, x) {
+  df <- df %>%
+    mutate(mean_x = c(point1_x + point2_x + point3_x) / 3,
+           mean_y = c(point1_y + point2_y + point3_y) / 3) %>%
+    group_by(rhombus) %>%
+    mutate(mean_x = mean(mean_x),
+           mean_y = mean(mean_y)) %>%
+    ungroup() %>%
+    mutate(distance = sqrt(mean_x^2 + mean_y^2)) %>%
+    mutate(subdivide = if_else(distance > x, TRUE, FALSE)) 
+  
+  df_subdivide <- df %>%
+    filter(subdivide == TRUE) %>%
+    select(-subdivide) %>%
+    substitution() %>%
+    substitution()
+  
+  df <- df %>%
+    filter(subdivide == FALSE) %>%
+    select(-subdivide) %>%
+    bind_rows(df_subdivide) %>%
+    select(-c(triangle, rhombus)) %>% # reset triangle and rhombus
+    rowid_to_column("triangle") %>%
+    group_by(point1_x, point1_y, point3_x, point3_y) %>%
+    mutate(rhombus = cur_group_id()) %>%
+    ungroup()
+  
+  return(df)
+}
+
+tiles <- return_starting_circle(0, 0, 90, 5, 'T') %>%
+  substitution()
+
+tiles <- purrr::reduce(.x = as.list(c(3, 5)),
+                       .f = check_substitution,
+                       .init = tiles)
+
+tiles <- tiles %>%
+  pivot_down() %>%
+  select(-triangle) %>%
+  distinct() %>%
+  group_by(rhombus) %>%
+  mutate(center_x = mean(x), 
+         center_y = mean(y)) %>%
+  mutate(distance = round(sqrt(center_x^2 + center_y^2), 2))
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = distance,
+                   group = rhombus)) +
+  coord_equal()
+```
+</br>
+A small catch here is that the rhombus centers change after subdivision. If you want to keep the same distances, just keep the centers from the beginning and don't recalculate.
+```{r center_cutoffs_2, fig.align = 'center', fig.height = 2, fig.width = 7}
+check_substitution <- function(df, x) {
+  df <- df %>%
+    mutate(subdivide = if_else(distance > x, TRUE, FALSE)) 
+  
+  df_subdivide <- df %>%
+    filter(subdivide == TRUE) %>%
+    select(-subdivide) %>%
+    substitution() %>%
+    substitution()
+  
+  df <- df %>%
+    filter(subdivide == FALSE) %>%
+    select(-subdivide) %>%
+    bind_rows(df_subdivide) %>%
+    select(-c(triangle, rhombus)) %>% # reset triangle and rhombus
+    rowid_to_column("triangle") %>%
+    group_by(point1_x, point1_y, point3_x, point3_y) %>%
+    mutate(rhombus = cur_group_id()) %>%
+    ungroup()
+  
+  return(df)
+}
+
+tiles <- return_starting_circle(0, 0, 90, 5, 'T') %>%
+  substitution() %>%
+  mutate(mean_x = c(point1_x + point2_x + point3_x) / 3,
+         mean_y = c(point1_y + point2_y + point3_y) / 3) %>%
+  group_by(rhombus) %>%
+  mutate(mean_x = mean(mean_x),
+         mean_y = mean(mean_y)) %>%
+  ungroup() %>%
+  mutate(distance = sqrt(mean_x^2 + mean_y^2)) 
+
+tiles <- purrr::reduce(.x = as.list(c(3, 5)),
+                       .f = check_substitution,
+                       .init = tiles)
+
+tiles <- tiles %>%
+  pivot_down() %>%
+  select(-triangle) %>%
+  distinct() %>%
+  group_by(rhombus) %>%
+  mutate(center_x = mean(x), 
+         center_y = mean(y)) %>%
+  mutate(distance = round(sqrt(center_x^2 + center_y^2), 2))
+
+ggplot(tiles) +
+  geom_polygon(aes(x = x,
+                   y = y,
+                   fill = distance,
+                   group = rhombus)) +
+  coord_equal()
+```
+There are slight differences between this image and the previous one.
