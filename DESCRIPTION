@@ -18,4 +18,8 @@ Imports:
     tibble,
     tidyr
 Suggests: 
-    ggplot2
+    knitr,
+    ggplot2,
+    rmarkdown,
+    tidyverse
+VignetteBuilder: knitr
