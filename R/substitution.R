@@ -22,6 +22,10 @@
 #' return_rhombus(0, 0, -90 + 36, 1, "T") %>% substitution()
 #' @importFrom rlang .data
 substitution <- function(df) {
+  if(nrow(df) == 0) {
+    return(df)
+  }
+
   df <- df %>%
     dplyr::rowwise() %>%
     dplyr::mutate(new_triangles = list(subdivide(

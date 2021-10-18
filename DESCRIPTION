@@ -22,5 +22,6 @@ Suggests:
     ggplot2,
     rmarkdown,
     tidyverse,
-    purrr
+    purrr,
+    ragg
 VignetteBuilder: knitr
