@@ -1,0 +1,12 @@
+pandoc: 2.11.4
+pkgdown: 1.6.1
+pkgdown_sha: ~
+articles:
+  getting-started: getting-started.html
+  troubleshooting-lines-between-polygons: troubleshooting-lines-between-polygons.html
+  using-purrr: using-purrr.html
+last_built: 2021-10-20T00:51Z
+urls:
+  reference: http://WilliamTylerBradley.github.io/penrosetiling/reference
+  article: http://WilliamTylerBradley.github.io/penrosetiling/articles
+
