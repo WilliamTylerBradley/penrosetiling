@@ -2,7 +2,7 @@
 % Please edit documentation in R/pivot_down.R
 \name{pivot_down}
 \alias{pivot_down}
-\title{Pivots a wide data set of triangle point into one point per row}
+\title{Pivots a wide data set (one triangle per row) into a long data set (one point per row)}
 \usage{
 pivot_down(df)
 }
