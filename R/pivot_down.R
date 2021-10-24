@@ -1,10 +1,12 @@
-#' Pivots a wide data set (one triangle per row) into a long data set (one point per row)
+#' Pivots a wide data set (one triangle per row) into a long data set (one point
+#' per row)
 #'
-#' Most of the functions in the *penrosetiling* package use triangles in a wide
-#' format, meaning all the points are in one row. For graphing with *ggplot2* and
-#' other data manipulation, it is better to have the data in long format, meaning
-#' one point per row with a column labeling the point order. This function convert
-#' a wide data set to a long one. It serves mostly as a small utility function.
+#' Most of the functions in the \code{penrosetiling} package use triangles in a
+#' wide format, meaning all the points are in one row. For graphing with
+#' \code{ggplot2} and other data manipulation, it is better to have the data in
+#' long format, meaning one point per row with a column labeling the point
+#' order. This function convert a wide data set to a long one. It serves mostly
+#' as a small utility function.
 #'
 #' @param df Data set of triangles in wide format
 #'
