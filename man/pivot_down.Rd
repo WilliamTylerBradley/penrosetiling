@@ -2,7 +2,8 @@
 % Please edit documentation in R/pivot_down.R
 \name{pivot_down}
 \alias{pivot_down}
-\title{Pivots a wide data set (one triangle per row) into a long data set (one point per row)}
+\title{Pivots a wide data set (one triangle per row) into a long data set (one point
+per row)}
 \usage{
 pivot_down(df)
 }
@@ -13,11 +14,12 @@ pivot_down(df)
 Data set of triangles in long format
 }
 \description{
-Most of the functions in the *penrosetiling* package use triangles in a wide
-format, meaning all the points are in one row. For graphing with *ggplot2* and
-other data manipulation, it is better to have the data in long format, meaning
-one point per row with a column labeling the point order. This function convert
-a wide data set to a long one. It serves mostly as a small utility function.
+Most of the functions in the \code{penrosetiling} package use triangles in a
+wide format, meaning all the points are in one row. For graphing with
+\code{ggplot2} and other data manipulation, it is better to have the data in
+long format, meaning one point per row with a column labeling the point
+order. This function convert a wide data set to a long one. It serves mostly
+as a small utility function.
 }
 \examples{
 return_starting_circle(0, 0, 0, 5, "t") \%>\% pivot_down()
