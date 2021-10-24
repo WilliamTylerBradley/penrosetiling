@@ -1,4 +1,4 @@
-#' Pivots a wide data set of triangle point into one point per row
+#' Pivots a wide data set (one triangle per row) into a long data set (one point per row)
 #'
 #' Most of the functions in the *penrosetiling* package use triangles in a wide
 #' format, meaning all the points are in one row. For graphing with *ggplot2* and
