@@ -1,5 +1,5 @@
 
-# penrosetiling
+# penrosetiling  <img src="man/figures/penrosetiling.png" align="right" alt="" width="120" />
 
 <!-- badges: start -->
 <!-- badges: end -->
